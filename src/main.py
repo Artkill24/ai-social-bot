@@ -6,6 +6,8 @@ Genera e pubblica contenuti automaticamente su Bluesky
 
 import sys
 import os
+import random
+import argparse
 
 # Aggiungi path per import
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +17,31 @@ from content.generator import ContentGenerator
 from platforms.bluesky import BlueskyPublisher
 from utils.database import Database
 
-def main():
+# Lista topic predefiniti per modalità automatica
+TOPICS = [
+    "Come l'AI sta trasformando lo sviluppo software",
+    "I migliori tool gratuiti per developers nel 2025",
+    "Python vs JavaScript: quale imparare per AI",
+    "GitHub Copilot e AI assistants: il futuro del coding",
+    "Bluesky e il futuro delle piattaforme social decentralizzate",
+    "Machine Learning accessibile: risorse gratuite per iniziare",
+    "API gratuite che ogni developer dovrebbe conoscere",
+    "Automazione con AI: risparmiare tempo nello sviluppo",
+    "Open source AI models: alternative gratuite a ChatGPT",
+    "Cloud computing gratuito per progetti AI",
+    "Best practices per prompt engineering nel 2025",
+    "Docker e containerizzazione: guida pratica",
+    "Git workflows per team moderni",
+    "Testing automation: strumenti essenziali",
+    "CI/CD pipeline con GitHub Actions",
+    "Database moderni: SQL vs NoSQL nel 2025",
+    "Sicurezza web: le basi che ogni developer deve sapere",
+    "Progressive Web Apps: quando e perché usarle",
+    "Microservizi vs Monoliti: cosa scegliere",
+    "Performance optimization: tips pratici",
+]
+
+def main(auto_mode=False):
     """Script principale"""
     
     print("="*50)
@@ -33,7 +59,7 @@ def main():
         print("   2. Ottieni Groq API key: console.groq.com")
         print("   3. Crea account Bluesky: bsky.app")
         print("   4. Compila .env con le tue credenziali")
-        return
+        return 1
     
     # 2. Inizializza componenti
     print("\n🔧 Inizializzazione componenti...")
@@ -49,22 +75,22 @@ def main():
     print("\n🔐 Login Bluesky...")
     if not bluesky.login():
         print("❌ Login fallito. Verifica credenziali in .env")
-        return
+        return 1
     
-    # 4. Chiedi topic o usa default
+    # 4. Scegli topic
     print("\n" + "="*50)
-    topic = input("📝 Su che argomento vuoi postare? (premi Enter per default): ").strip()
     
-    if not topic:
-        topics_default = [
-            "Come l'AI sta cambiando il modo di programmare",
-            "I migliori tool gratuiti per developers nel 2025",
-            "Perché Python resta il linguaggio più amato",
-            "GitHub Copilot vs Claude Code: quale scegliere?",
-        ]
-        import random
-        topic = random.choice(topics_default)
-        print(f"📌 Topic scelto: {topic}")
+    if auto_mode:
+        # Modalità automatica: scegli topic random
+        topic = random.choice(TOPICS)
+        print(f"🤖 Modalità AUTO - Topic scelto: {topic}")
+    else:
+        # Modalità manuale: chiedi all'utente
+        topic = input("📝 Su che argomento vuoi postare? (premi Enter per default): ").strip()
+        
+        if not topic:
+            topic = random.choice(TOPICS)
+            print(f"📌 Topic scelto: {topic}")
     
     # 5. Genera contenuto
     print("\n🤖 Generazione contenuto...")
@@ -78,11 +104,17 @@ def main():
     print(f"📏 Lunghezza: {len(content)} caratteri")
     
     # 6. Conferma pubblicazione
-    confirm = input("\n✅ Pubblicare questo post? (y/n): ").strip().lower()
+    if auto_mode:
+        # Modalità auto: pubblica sempre
+        confirm = 'y'
+        print("\n🤖 Modalità AUTO - Pubblicazione automatica")
+    else:
+        # Modalità manuale: chiedi conferma
+        confirm = input("\n✅ Pubblicare questo post? (y/n): ").strip().lower()
     
     if confirm != 'y':
         print("❌ Pubblicazione annullata.")
-        return
+        return 0
     
     # 7. Pubblica!
     print("\n📤 Pubblicazione in corso...")
@@ -97,7 +129,8 @@ def main():
             metadata={
                 'topic': topic,
                 'uri': result['uri'],
-                'cid': result['cid']
+                'cid': result['cid'],
+                'auto_mode': auto_mode
             }
         )
         
@@ -107,9 +140,24 @@ def main():
         print(f"✅ Post pubblicato su Bluesky")
         print(f"🔗 URL: {result['url']}")
         print(f"💾 Salvato nel database")
-        print("\n🎊 Vai a vedere il post nel tuo profilo Bluesky!")
+        
+        if auto_mode:
+            print(f"🤖 Modalità automatica completata")
+        else:
+            print("\n🎊 Vai a vedere il post nel tuo profilo Bluesky!")
+        
+        return 0
     else:
         print("\n❌ Pubblicazione fallita. Controlla gli errori sopra.")
+        return 1
 
 if __name__ == "__main__":
-    main()
+    # Supporto argomenti da linea di comando
+    parser = argparse.ArgumentParser(description='AI Social Bot')
+    parser.add_argument('--auto', action='store_true', 
+                       help='Modalità automatica (no interazione utente)')
+    
+    args = parser.parse_args()
+    
+    exit_code = main(auto_mode=args.auto)
+    sys.exit(exit_code)
