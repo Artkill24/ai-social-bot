@@ -1,0 +1,13 @@
+# AI Generation (FREE!)
+groq==0.9.0
+
+# Social Media - Bluesky
+atproto==0.0.46
+
+# Trending Topics (opzionale)
+praw==7.7.1
+feedparser==6.0.11
+
+# Utilities
+requests==2.31.0
+python-dotenv==1.0.0
