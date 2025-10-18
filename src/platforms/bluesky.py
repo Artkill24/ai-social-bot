@@ -71,7 +71,6 @@ class BlueskyPublisher:
                 'uri': response.uri,
                 'cid': response.cid,
                 'url': post_url,
-                'indexed_at': str(response.indexed_at)
             }
             
             print(f"✅ Post pubblicato!")
@@ -80,5 +79,9 @@ class BlueskyPublisher:
             return result
             
         except Exception as e:
-            print(f"❌ Errore pubblicazione: {e}")
+            print(f"❌ Errore pubblicazione DETTAGLIATO:")
+            print(f"   Tipo: {type(e).__name__}")
+            print(f"   Messaggio: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
