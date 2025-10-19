@@ -22,22 +22,19 @@ class Config:
     DATABASE_PATH = "data/posts.db"
     
     # Impostazioni Bot
-    POST_FREQUENCY_HOURS = 8  # Ogni quante ore postare
-    MAX_POST_LENGTH = 280  # Caratteri massimi per Bluesky
+    POST_FREQUENCY_HOURS = 8
+    MAX_POST_LENGTH = 280
     
     @classmethod
     def validate(cls):
         """Verifica che tutte le credenziali siano configurate"""
-        required = [
-            "GROQ_API_KEY",
-            "BLUESKY_USERNAME", 
-            "BLUESKY_PASSWORD"
-        ]
+        required = {
+            "GROQ_API_KEY": cls.GROQ_API_KEY,
+            "BLUESKY_USERNAME": cls.BLUESKY_USERNAME,
+            "BLUESKY_PASSWORD": cls.BLUESKY_PASSWORD
+        }
         
-        missing = []
-        for key in required:
-            if not getattr(cls, key):
-                missing.append(key)
+        missing = [key for key, value in required.items() if not value]
         
         if missing:
             raise ValueError(f"❌ Mancano queste credenziali: {', '.join(missing)}")

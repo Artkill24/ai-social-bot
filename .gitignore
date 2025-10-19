@@ -206,3 +206,20 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 data/*.db
+# Environments
+.env
+.venv
+venv/
+*.log
+
+# Database
+data/*.db
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
