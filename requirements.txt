@@ -12,3 +12,4 @@ pytest==7.4.3          # Testing
 pytest-cov==4.1.0      # Coverage
 black==23.12.1         # Code formatting
 ruff==0.1.9            # Linting
+Pillow==10.1.0  # For image processing

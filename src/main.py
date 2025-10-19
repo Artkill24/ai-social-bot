@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Social Bot - Main Script
-Automatically generates and publishes tech content on Bluesky
+Automatically generates and publishes tech content with AI images on Bluesky
 """
 
 import sys
@@ -9,11 +9,11 @@ import os
 import random
 import argparse
 
-# Add path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import Config
 from content.generator import ContentGenerator
+from content.image_generator import create_image_generator, FallbackImageGenerator
 from platforms.bluesky import BlueskyPublisher
 from utils.database import Database
 
@@ -41,7 +41,7 @@ TOPICS = [
     "Performance optimization: practical tips",
 ]
 
-def main(auto_mode=False):
+def main(auto_mode=False, with_image=True):
     """Main script"""
     
     print("="*50)
@@ -66,6 +66,8 @@ def main(auto_mode=False):
     
     db = Database(Config.DATABASE_PATH)
     generator = ContentGenerator(Config.GROQ_API_KEY)
+    image_gen = create_image_generator() if with_image else None
+    
     bluesky = BlueskyPublisher(
         Config.BLUESKY_USERNAME,
         Config.BLUESKY_PASSWORD
@@ -81,11 +83,9 @@ def main(auto_mode=False):
     print("\n" + "="*50)
     
     if auto_mode:
-        # Automatic mode: choose random topic
         topic = random.choice(TOPICS)
         print(f"🤖 AUTO Mode - Topic chosen: {topic}")
     else:
-        # Manual mode: ask user
         topic = input("📝 What topic to post about? (press Enter for default): ").strip()
         
         if not topic:
@@ -96,32 +96,45 @@ def main(auto_mode=False):
     print("\n🤖 Generating content...")
     content = generator.generate_post(topic, platform="bluesky")
     
+    # 6. Generate image (optional)
+    image_bytes = None
+    if with_image:
+        if image_gen:
+            print("\n🎨 Generating AI image...")
+            image_bytes = image_gen.generate_for_post(topic)
+            
+            if not image_bytes:
+                print("⚠️ AI image generation failed, trying fallback...")
+                image_bytes = FallbackImageGenerator.generate_placeholder(topic)
+        else:
+            print("\n⚠️ Image generation disabled (Cloudflare credentials not found)")
+    
     print("\n" + "="*50)
     print("📄 POST PREVIEW:")
     print("="*50)
     print(content)
+    if image_bytes:
+        print(f"🖼️  With AI-generated image ({len(image_bytes)} bytes)")
     print("="*50)
     print(f"📏 Length: {len(content)} characters")
     
-    # 6. Confirm publication
+    # 7. Confirm publication
     if auto_mode:
-        # Auto mode: always publish
         confirm = 'y'
         print("\n🤖 AUTO Mode - Automatic publication")
     else:
-        # Manual mode: ask confirmation
         confirm = input("\n✅ Publish this post? (y/n): ").strip().lower()
     
     if confirm != 'y':
         print("❌ Publication cancelled.")
         return 0
     
-    # 7. Publish!
+    # 8. Publish!
     print("\n📤 Publishing...")
-    result = bluesky.post(content)
+    result = bluesky.post(content, image_bytes=image_bytes)
     
     if result:
-        # 8. Save to database
+        # 9. Save to database
         db.save_post(
             content=content,
             platform="bluesky",
@@ -130,7 +143,8 @@ def main(auto_mode=False):
                 'topic': topic,
                 'uri': result['uri'],
                 'cid': result['cid'],
-                'auto_mode': auto_mode
+                'auto_mode': auto_mode,
+                'has_image': result.get('has_image', False)
             }
         )
         
@@ -139,6 +153,8 @@ def main(auto_mode=False):
         print("="*50)
         print(f"✅ Post published on Bluesky")
         print(f"🔗 URL: {result['url']}")
+        if result.get('has_image'):
+            print(f"🖼️  With AI-generated image")
         print(f"💾 Saved to database")
         
         if auto_mode:
@@ -152,12 +168,13 @@ def main(auto_mode=False):
         return 1
 
 if __name__ == "__main__":
-    # Support command line arguments
     parser = argparse.ArgumentParser(description='AI Social Bot')
     parser.add_argument('--auto', action='store_true', 
                        help='Automatic mode (no user interaction)')
+    parser.add_argument('--no-image', action='store_true',
+                       help='Disable image generation')
     
     args = parser.parse_args()
     
-    exit_code = main(auto_mode=args.auto)
+    exit_code = main(auto_mode=args.auto, with_image=not args.no_image)
     sys.exit(exit_code)
