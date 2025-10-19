@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Social Bot - Main Script
-Genera e pubblica contenuti automaticamente su Bluesky
+Automatically generates and publishes tech content on Bluesky
 """
 
 import sys
@@ -9,7 +9,7 @@ import os
 import random
 import argparse
 
-# Aggiungi path per import
+# Add path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import Config
@@ -17,52 +17,52 @@ from content.generator import ContentGenerator
 from platforms.bluesky import BlueskyPublisher
 from utils.database import Database
 
-# Lista topic predefiniti per modalità automatica
+# Predefined topics for automatic mode - IN ENGLISH
 TOPICS = [
-    "Come l'AI sta trasformando lo sviluppo software",
-    "I migliori tool gratuiti per developers nel 2025",
-    "Python vs JavaScript: quale imparare per AI",
-    "GitHub Copilot e AI assistants: il futuro del coding",
-    "Bluesky e il futuro delle piattaforme social decentralizzate",
-    "Machine Learning accessibile: risorse gratuite per iniziare",
-    "API gratuite che ogni developer dovrebbe conoscere",
-    "Automazione con AI: risparmiare tempo nello sviluppo",
-    "Open source AI models: alternative gratuite a ChatGPT",
-    "Cloud computing gratuito per progetti AI",
-    "Best practices per prompt engineering nel 2025",
-    "Docker e containerizzazione: guida pratica",
-    "Git workflows per team moderni",
-    "Testing automation: strumenti essenziali",
-    "CI/CD pipeline con GitHub Actions",
-    "Database moderni: SQL vs NoSQL nel 2025",
-    "Sicurezza web: le basi che ogni developer deve sapere",
-    "Progressive Web Apps: quando e perché usarle",
-    "Microservizi vs Monoliti: cosa scegliere",
-    "Performance optimization: tips pratici",
+    "How AI is transforming software development in 2025",
+    "Best free tools for developers in 2025",
+    "Python vs JavaScript: which to learn for AI",
+    "GitHub Copilot and AI assistants: the future of coding",
+    "Bluesky and the future of decentralized social platforms",
+    "Accessible machine learning: free resources to get started",
+    "Free APIs every developer should know",
+    "Automation with AI: saving time in development",
+    "Open source AI models: free alternatives to ChatGPT",
+    "Free cloud computing for AI projects",
+    "Best practices for prompt engineering in 2025",
+    "Docker and containerization: practical guide",
+    "Git workflows for modern teams",
+    "Testing automation: essential tools",
+    "CI/CD pipelines with GitHub Actions",
+    "Modern databases: SQL vs NoSQL in 2025",
+    "Web security: basics every developer must know",
+    "Progressive Web Apps: when and why to use them",
+    "Microservices vs Monoliths: what to choose",
+    "Performance optimization: practical tips",
 ]
 
 def main(auto_mode=False):
-    """Script principale"""
+    """Main script"""
     
     print("="*50)
-    print("🤖 AI SOCIAL BOT - Avvio")
+    print("🤖 AI SOCIAL BOT - Starting")
     print("="*50)
     
-    # 1. Valida configurazione
-    print("\n📋 Validazione credenziali...")
+    # 1. Validate configuration
+    print("\n📋 Validating credentials...")
     try:
         Config.validate()
     except ValueError as e:
         print(f"\n{e}")
-        print("\n💡 Istruzioni:")
-        print("   1. Copia .env.example → .env")
-        print("   2. Ottieni Groq API key: console.groq.com")
-        print("   3. Crea account Bluesky: bsky.app")
-        print("   4. Compila .env con le tue credenziali")
+        print("\n💡 Instructions:")
+        print("   1. Copy .env.example → .env")
+        print("   2. Get Groq API key: console.groq.com")
+        print("   3. Create Bluesky account: bsky.app")
+        print("   4. Fill .env with your credentials")
         return 1
     
-    # 2. Inizializza componenti
-    print("\n🔧 Inizializzazione componenti...")
+    # 2. Initialize components
+    print("\n🔧 Initializing components...")
     
     db = Database(Config.DATABASE_PATH)
     generator = ContentGenerator(Config.GROQ_API_KEY)
@@ -71,57 +71,57 @@ def main(auto_mode=False):
         Config.BLUESKY_PASSWORD
     )
     
-    # 3. Login a Bluesky
-    print("\n🔐 Login Bluesky...")
+    # 3. Login to Bluesky
+    print("\n🔐 Bluesky Login...")
     if not bluesky.login():
-        print("❌ Login fallito. Verifica credenziali in .env")
+        print("❌ Login failed. Check credentials in .env")
         return 1
     
-    # 4. Scegli topic
+    # 4. Choose topic
     print("\n" + "="*50)
     
     if auto_mode:
-        # Modalità automatica: scegli topic random
+        # Automatic mode: choose random topic
         topic = random.choice(TOPICS)
-        print(f"🤖 Modalità AUTO - Topic scelto: {topic}")
+        print(f"🤖 AUTO Mode - Topic chosen: {topic}")
     else:
-        # Modalità manuale: chiedi all'utente
-        topic = input("📝 Su che argomento vuoi postare? (premi Enter per default): ").strip()
+        # Manual mode: ask user
+        topic = input("📝 What topic to post about? (press Enter for default): ").strip()
         
         if not topic:
             topic = random.choice(TOPICS)
-            print(f"📌 Topic scelto: {topic}")
+            print(f"📌 Topic chosen: {topic}")
     
-    # 5. Genera contenuto
-    print("\n🤖 Generazione contenuto...")
+    # 5. Generate content
+    print("\n🤖 Generating content...")
     content = generator.generate_post(topic, platform="bluesky")
     
     print("\n" + "="*50)
-    print("📄 PREVIEW DEL POST:")
+    print("📄 POST PREVIEW:")
     print("="*50)
     print(content)
     print("="*50)
-    print(f"📏 Lunghezza: {len(content)} caratteri")
+    print(f"📏 Length: {len(content)} characters")
     
-    # 6. Conferma pubblicazione
+    # 6. Confirm publication
     if auto_mode:
-        # Modalità auto: pubblica sempre
+        # Auto mode: always publish
         confirm = 'y'
-        print("\n🤖 Modalità AUTO - Pubblicazione automatica")
+        print("\n🤖 AUTO Mode - Automatic publication")
     else:
-        # Modalità manuale: chiedi conferma
-        confirm = input("\n✅ Pubblicare questo post? (y/n): ").strip().lower()
+        # Manual mode: ask confirmation
+        confirm = input("\n✅ Publish this post? (y/n): ").strip().lower()
     
     if confirm != 'y':
-        print("❌ Pubblicazione annullata.")
+        print("❌ Publication cancelled.")
         return 0
     
-    # 7. Pubblica!
-    print("\n📤 Pubblicazione in corso...")
+    # 7. Publish!
+    print("\n📤 Publishing...")
     result = bluesky.post(content)
     
     if result:
-        # 8. Salva nel database
+        # 8. Save to database
         db.save_post(
             content=content,
             platform="bluesky",
@@ -135,27 +135,27 @@ def main(auto_mode=False):
         )
         
         print("\n" + "="*50)
-        print("🎉 SUCCESSO!")
+        print("🎉 SUCCESS!")
         print("="*50)
-        print(f"✅ Post pubblicato su Bluesky")
+        print(f"✅ Post published on Bluesky")
         print(f"🔗 URL: {result['url']}")
-        print(f"💾 Salvato nel database")
+        print(f"💾 Saved to database")
         
         if auto_mode:
-            print(f"🤖 Modalità automatica completata")
+            print(f"🤖 Automatic mode completed")
         else:
-            print("\n🎊 Vai a vedere il post nel tuo profilo Bluesky!")
+            print("\n🎊 Go see the post on your Bluesky profile!")
         
         return 0
     else:
-        print("\n❌ Pubblicazione fallita. Controlla gli errori sopra.")
+        print("\n❌ Publication failed. Check errors above.")
         return 1
 
 if __name__ == "__main__":
-    # Supporto argomenti da linea di comando
+    # Support command line arguments
     parser = argparse.ArgumentParser(description='AI Social Bot')
     parser.add_argument('--auto', action='store_true', 
-                       help='Modalità automatica (no interazione utente)')
+                       help='Automatic mode (no user interaction)')
     
     args = parser.parse_args()
     
