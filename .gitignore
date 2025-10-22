@@ -223,3 +223,14 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# LinkedIn OAuth (contiene secrets se configurato)
+get_linkedin_token_configured.py
+
+# Backup files
+*.backup
+*.bak
+
+# Environment files with secrets
+.env.local
+.env.production
