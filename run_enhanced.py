@@ -77,3 +77,65 @@ def trending():
 
 if __name__ == '__main__':
     cli()
+
+def engage(args):
+    """Run auto-engagement session"""
+    from src.engagement.auto_engage import EngagementEngine
+    from src.platforms.mastodon_publisher import MastodonPublisher
+    from src.platforms.bluesky import BlueskyPublisher
+    from config import Config
+    
+    print("🤖 Auto-Engagement Mode")
+    print("="*50)
+    
+    # Choose platform
+    platform = args.platform or 'mastodon'
+    
+    if platform == 'mastodon':
+        if not Config.ENABLE_MASTODON or not Config.MASTODON_ACCESS_TOKEN:
+            print("❌ Mastodon not configured!")
+            return
+        
+        publisher = MastodonPublisher(
+            Config.MASTODON_INSTANCE_URL,
+            Config.MASTODON_ACCESS_TOKEN
+        )
+        if not publisher.login():
+            print("❌ Mastodon login failed!")
+            return
+    
+    elif platform == 'bluesky':
+        if not Config.ENABLE_BLUESKY:
+            print("❌ Bluesky not configured!")
+            return
+        
+        publisher = BlueskyPublisher(
+            Config.BLUESKY_USERNAME,
+            Config.BLUESKY_PASSWORD
+        )
+        if not publisher.login():
+            print("❌ Bluesky login failed!")
+            return
+    
+    else:
+        print(f"❌ Unknown platform: {platform}")
+        return
+    
+    # Custom hashtags if provided
+    hashtags = args.hashtags.split(',') if args.hashtags else None
+    
+    # Run engagement
+    engine = EngagementEngine(publisher, target_hashtags=hashtags)
+    engaged = engine.auto_engage_session(max_posts=args.max_posts)
+    
+    print(f"\n✅ Engaged with {engaged} posts!")
+
+# Add to argparse
+engagement_parser = subparsers.add_parser('engage', help='Auto-engage with relevant posts')
+engagement_parser.add_argument('--platform', type=str, default='mastodon',
+                              help='Platform (mastodon/bluesky)')
+engagement_parser.add_argument('--max-posts', type=int, default=20,
+                              help='Max posts to engage with')
+engagement_parser.add_argument('--hashtags', type=str,
+                              help='Comma-separated hashtags to target')
+engagement_parser.set_defaults(func=engage)
