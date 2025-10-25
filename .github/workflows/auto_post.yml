@@ -1,10 +1,18 @@
+name: Auto Post Bot
 
-  auto_engage:
+on:
+  schedule:
+    # Post 2x al giorno: 9 AM e 5 PM UTC
+    - cron: '0 9,17 * * *'
+  workflow_dispatch:  # Permette esecuzione manuale
+
+jobs:
+  post:
     runs-on: ubuntu-latest
-    needs: post
-    if: success()
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -13,11 +21,47 @@
       
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Auto-engage
+      - name: Run bot - Auto posting
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          BLUESKY_USERNAME: ${{ secrets.BLUESKY_USERNAME }}
+          BLUESKY_PASSWORD: ${{ secrets.BLUESKY_PASSWORD }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MASTODON_INSTANCE_URL: ${{ secrets.MASTODON_INSTANCE_URL }}
+          MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
+          ENABLE_BLUESKY: true
+          ENABLE_MASTODON: true
+          ENABLE_LINKEDIN: false
+        run: |
+          python -m src.main --auto
+
+  auto_engage:
+    runs-on: ubuntu-latest
+    needs: post
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Auto-engage with posts
         env:
           MASTODON_INSTANCE_URL: ${{ secrets.MASTODON_INSTANCE_URL }}
           MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
+          ENABLE_MASTODON: true
         run: |
-          python run_enhanced.py engage --platform mastodon --max-posts 15
+          python engage.py --max-posts 10
